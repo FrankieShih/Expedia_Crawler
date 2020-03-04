@@ -21,8 +21,7 @@ NEWSPIDER_MODULE = 'tu.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 FEED_EXPORT_ENCODING = 'utf-8'
-FEED_EXPORT_FIELDS = ["hotellink"]
-#FEED_EXPORT_FIELDS = ["name", "zone", "zipcode", "star", "rating", "rates", "checkin", "checkout", "room", "size", "price", "bed", "guests", "address", "link"]
+FEED_EXPORT_FIELDS = ["name","location","price","star","rating","cleanliness_rating","service_staff_rating","amentities_rating","prorerty_condition_rating","reviews_num","excellent_num","good_num","okay_num","mediocre_num","poor_num","link"]
 #Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 16
 

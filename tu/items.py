@@ -9,25 +9,26 @@ import scrapy
 
 
 class TuItem(scrapy.Item):
-	# name = scrapy.Field()
-	# zone = scrapy.Field()
-	# star = scrapy.Field()
-	# rating = scrapy.Field()
-	# rates = scrapy.Field()
-	# room = scrapy.Field()
-	# size = scrapy.Field()
-	# bed = scrapy.Field()
-	# guests = scrapy.Field()
-	# price = scrapy.Field()
-	# #lowestPrice = scrapy.Field()	
-	# address = scrapy.Field()	
-	# link = scrapy.Field()
-	# checkin = scrapy.Field()
-	# checkout = scrapy.Field()
-	# zipcode = scrapy.Field()
-	hotellink = scrapy.Field()
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    #pass
-	# name = scrapy.Fild()
- #    price = scrapy.Fild()
+	
+	name = scrapy.Field()
+	location = scrapy.Field()
+	price = scrapy.Field()
+	# rating
+	star = scrapy.Field()
+	rating = scrapy.Field() 
+	cleanliness_rating = scrapy.Field()
+	service_staff_rating = scrapy.Field()
+	amentities_rating = scrapy.Field()
+	prorerty_condition_rating = scrapy.Field()
+	# the numbers of reviews 
+	reviews_num = scrapy.Field()
+	excellent_num = scrapy.Field()
+	good_num = scrapy.Field()
+	okay_num = scrapy.Field()
+	mediocre_num = scrapy.Field()
+	poor_num = scrapy.Field()
+	#link
+	link = scrapy.Field()
+
+
+
