@@ -15,7 +15,8 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         self.driver = webdriver.Chrome()
-        yield scrapy.Request(self.driver.current_url, callback=self.parse)
+        headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
+        yield scrapy.Request(url="http://www.example.com", callback=self.parse, headers = headers)
 
 
     def parse(self, response):
@@ -25,8 +26,8 @@ class QuotesSpider(scrapy.Spider):
         #destInput = "Los Angeles"
         #destInput = "San Francisco"
         destInput = "New York"
-        checkInDateInput = "03/02/2020"
-        checkOutDateInput = "03/03/2020"
+        checkInDateInput = "03/04/2020"
+        checkOutDateInput = "03/05/2020"
         # Tip: set "345" to crawl 3/4/5 class, or just one "4" for 4 class only
         # for some unknown reason, expedia may not show 1 and 2 star filter for clickble
         # besides, if you choose 3 then 5, 4 will also be choosed and non-cancellable
@@ -116,38 +117,66 @@ class QuotesSpider(scrapy.Spider):
 
         sel = scrapy.Selector(text = self.driver.page_source);
         
-        more_flag = 1
-        clickCount = 1
-        while(more_flag):
-            js="var q=document.documentElement.scrollTop=100000"  
-            self.driver.execute_script(js)  
-            time.sleep(3) 
-            try:
-                moreButton = self.driver.find_element_by_class_name("uitk-button.uitk-button-small.uitk-button-secondary")
-                moreButton.click()
-                clickCount += 1
-                print('Loading the page ' + str(more_flag))
-                time.sleep(5)
-            except:
-                more_flag = 0
+        # more_flag = 1
+        # clickCount = 1
+        # while(more_flag):
+        #     js="var q=document.documentElement.scrollTop=100000"  
+        #     self.driver.execute_script(js)  
+        #     time.sleep(1) 
+        #     try:
+        #         moreButton = self.driver.find_element_by_class_name("uitk-button.uitk-button-small.uitk-button-secondary")
+        #         moreButton.click()
+        #         clickCount += 1
+        #         print('Loading the page ' + str(clickCount))
+        #         time.sleep(3)
+        #     except:
+        #         more_flag = 0
 
 
         # get the hotels' links on the result pages
         hotelmodel = TuItem()
         hotels = self.driver.find_elements_by_class_name("listing__link.uitk-card-link")
+        headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
+        crawlCount = 0
         for hotel in hotels:
-            hotelmodel['hotellink'] = hotel.get_attribute("href")
-            yield hotelmodel
+            hotelmodel['link'] = hotel.get_attribute("href")
+            crawlCount += 1
+            print('Crawling hotel ' + str(crawlCount))
+            yield scrapy.Request(url = hotelmodel['link'], headers = headers, callback=self.detail_parse)
+
+
         self.driver.quit()
+
+    def detail_parse(self, response):
+        
+        hotelmodel = TuItem()    
+        hotelmodel['link'] = response.url
+        hotelmodel['name'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/section/div[1]/div/div[2]/div[1]/div/div[1]/h1/text()').extract_first()
+        hotelmodel['location'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[1]/div/div/section[3]/div[1]/div[2]/a/div/span[2]/text()').extract_first()
+        hotelmodel['price'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/section/ul/li[1]/div/section/div/div[2]/div/section/div/div[2]/div[1]/div[2]/div[1]/div[1]/span/span[2]/text()').extract_first()
+        hotelmodel['star'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[1]/div[1]/text()').extract_first()
+        hotelmodel['rating'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[1]/div[2]/p/text()').extract_first()
+        hotelmodel['cleanliness_rating'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[3]/div[1]/div[1]/text()').extract_first()
+        hotelmodel['service_staff_rating'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[3]/div[2]/div[1]/text()').extract_first()
+        hotelmodel['amentities_rating'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[3]/div[3]/div[1]/text()').extract_first()
+        hotelmodel['prorerty_condition_rating'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[3]/div[4]/div[1]/text()').extract_first()
+        hotelmodel['reviews_num'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[1]/div[2]/div/a/text()').extract_first()
+        hotelmodel['excellent_num'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[2]/div[1]/div/div[1]/div[2]/text()').extract_first()
+        hotelmodel['good_num'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[2]/div[2]/div/div[1]/div[2]/text()').extract_first()
+        hotelmodel['okay_num'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[2]/div[3]/div/div[1]/div[2]/text()').extract_first()
+        hotelmodel['mediocre_num'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[2]/div[4]/div/div[1]/div[2]/text()').extract_first()
+        hotelmodel['poor_num'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/main/div[1]/div[7]/div/div/section/div/div/div[1]/div/div[2]/div[5]/div/div[1]/div[2]/text()').extract_first()
+        return hotelmodel
+
 
             # # open links in the hotels list
             # #while (False): # use this line to disable save hotel function, left click 'Next' only
             # for hotel in hotels:
 
-            #     htName = hotel.xpath("div[2]/div/div[1]/div[2]/ul[1]/li[@class='hotelTitle']/h4/text()").extract_first().strip()
-            #     htZone = hotel.xpath("div[2]/div/div[1]/div[2]/ul[1]/li[@class='neighborhood secondary']/text()").extract_first().strip()
-            #     #htRating = hotel.xpath("div[2]/div[1]/div[1]/div[@class='flex-area-secondary']/div/div[@class='price-col-1']/ul[@class='hotel-ugc']/li[@class='reviewOverall']/span[2]/text()").extract_first().strip()
-            #     #htRates = hotel.xpath("div[2]/div[1]/div[1]/div[@class='flex-area-secondary']/div/div[@class='price-col-1']/ul[@class='hotel-ugc']/li[@class='reviewCount fakeLink secondary']/span[2]/text()").extract_first().strip()
+            #     htName = hotel.xpath("div[2]/div/div[1]/div[2]/ul[1]/li[@class='hotelTitle']/h4/text()").extract_first()
+            #     htZone = hotel.xpath("div[2]/div/div[1]/div[2]/ul[1]/li[@class='neighborhood secondary']/text()").extract_first()
+            #     #htRating = hotel.xpath("div[2]/div[1]/div[1]/div[@class='flex-area-secondary']/div/div[@class='price-col-1']/ul[@class='hotel-ugc']/li[@class='reviewOverall']/span[2]/text()").extract_first()
+            #     #htRates = hotel.xpath("div[2]/div[1]/div[1]/div[@class='flex-area-secondary']/div/div[@class='price-col-1']/ul[@class='hotel-ugc']/li[@class='reviewCount fakeLink secondary']/span[2]/text()").extract_first()
             #     lowestPrice =  hotel.xpath("div[2]/div/div[1]/div[3]/div/div[@class='price-col-1']/ul[@class='hotel-price']/li[@data-automation='actual-price']/text()").extract_first()
                 
             #     if (lowestPrice is None):
@@ -159,7 +188,7 @@ class QuotesSpider(scrapy.Spider):
 
             #     # version 1 of checking sponsor, by extract value in the tag<article>
             #     # I have found 3 type of status: organic, sponsored, dealofday
-            #     sponsorChk = hotel.xpath("@data-automation").extract_first().strip()
+            #     sponsorChk = hotel.xpath("@data-automation").extract_first()
             #     #print "sponsorChk status is:",sponsorChk
                 
             #     #yield hotelmodelPresave(htName,htZone,lowestPrice,htLink,sponsorChk)
