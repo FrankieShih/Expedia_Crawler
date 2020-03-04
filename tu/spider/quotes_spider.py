@@ -93,6 +93,8 @@ class QuotesSpider(scrapy.Spider):
         if (int(oneP) == 1):
             people.click()
         time.sleep(3)
+
+        hotelCount = 0
         
         # starting search
         searchButton.click()
@@ -117,20 +119,20 @@ class QuotesSpider(scrapy.Spider):
 
         sel = scrapy.Selector(text = self.driver.page_source);
         
-        # more_flag = 1
-        # clickCount = 1
-        # while(more_flag):
-        #     js="var q=document.documentElement.scrollTop=100000"  
-        #     self.driver.execute_script(js)  
-        #     time.sleep(1) 
-        #     try:
-        #         moreButton = self.driver.find_element_by_class_name("uitk-button.uitk-button-small.uitk-button-secondary")
-        #         moreButton.click()
-        #         clickCount += 1
-        #         print('Loading the page ' + str(clickCount))
-        #         time.sleep(3)
-        #     except:
-        #         more_flag = 0
+        more_flag = 1
+        clickCount = 1
+        while(more_flag):
+            js="var q=document.documentElement.scrollTop=100000"  
+            self.driver.execute_script(js)  
+            time.sleep(1) 
+            try:
+                moreButton = self.driver.find_element_by_class_name("uitk-button.uitk-button-small.uitk-button-secondary")
+                moreButton.click()
+                clickCount += 1
+                print('Loading the page ' + str(clickCount))
+                time.sleep(3)
+            except:
+                more_flag = 0
 
 
         # get the hotels' links on the result pages
@@ -141,14 +143,17 @@ class QuotesSpider(scrapy.Spider):
         for hotel in hotels:
             hotelmodel['link'] = hotel.get_attribute("href")
             crawlCount += 1
-            print('Crawling hotel ' + str(crawlCount))
+            print('Requesting hotel ' + str(crawlCount))
             yield scrapy.Request(url = hotelmodel['link'], headers = headers, callback=self.detail_parse)
 
 
         self.driver.quit()
 
     def detail_parse(self, response):
-        
+
+        hotelCount += 1
+        print('Crwaling hotel ' + str(hotelCount))
+        time.sleep(3)
         hotelmodel = TuItem()    
         hotelmodel['link'] = response.url
         hotelmodel['name'] = response.xpath('//*[@id="app"]/div[1]/div/div/div/div[1]/section/div[1]/div/div[2]/div[1]/div/div[1]/h1/text()').extract_first()
