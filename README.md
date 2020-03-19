@@ -1,5 +1,5 @@
 # Requirements
-python，scrapy，selenium，geckodriver，firefox
+python，scrapy，selenium，firefox
 
 # What does it do
 Crawl hotel info and room price
